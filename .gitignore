@@ -10,3 +10,4 @@ classes/
 .project
 .settings
 .classpath
+set-google-key.sh
