@@ -3,7 +3,7 @@ package geo.center
 class BootStrap {
 
     def init = { servletContext ->
-        Address.initializeData()
+        Location.initializeData()
     }
     def destroy = {
     }

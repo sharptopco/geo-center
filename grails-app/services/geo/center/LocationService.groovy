@@ -4,7 +4,7 @@ import grails.plugins.rest.client.RestBuilder
 import grails.transaction.Transactional
 
 @Transactional
-class AddressService {
+class LocationService {
 
     Map cache = [:]
 
@@ -14,28 +14,28 @@ class AddressService {
     static final BigDecimal DOLLARS_PER_MILE = 0.25
     static final BigDecimal DOLLARS_PER_HOUR = 40.0
 
-    Integer findMetersBetween(Address start, Address end) {
+    Integer findMetersBetween(Location start, Location end) {
         getFromCache(start, end, "meters")
     }
 
-    Integer findSecondsBetween(Address start, Address end) {
+    Integer findSecondsBetween(Location start, Location end) {
         getFromCache(start, end, "seconds")
     }
 
-    BigDecimal findWeeklyVehicleCost(Address start, Address end) {
+    BigDecimal findWeeklyVehicleCost(Location start, Location end) {
         findMetersBetween(start, end) * end.tripsPerWeek * ROUND_TRIP * MILES_PER_METER * DOLLARS_PER_MILE
     }
 
-    BigDecimal findWeeklyTimeCost(Address start, Address end) {
+    BigDecimal findWeeklyTimeCost(Location start, Location end) {
         findSecondsBetween(start, end) * end.tripsPerWeek * ROUND_TRIP * HOURS_PER_SECOND * DOLLARS_PER_HOUR
     }
 
-    BigDecimal findWeeklyCost(Address start, Address end) {
+    BigDecimal findWeeklyCost(Location start, Location end) {
         findWeeklyTimeCost(start, end) + findWeeklyVehicleCost(start, end)
     }
 
-    BigDecimal findWeeklyCost(Address start) {
-        List destinations = Address.findAllByTripsPerWeekGreaterThan(0.0)
+    BigDecimal findWeeklyCost(Location start) {
+        List destinations = Location.findAllByTripsPerWeekGreaterThan(0.0)
         if (destinations) {
             destinations.sum { end -> findWeeklyCost(start, end) }
         }
@@ -51,7 +51,7 @@ class AddressService {
      * @param end
      * @return
      */
-    private String buildUrl(Address start, Address end) {
+    private String buildUrl(Location start, Location end) {
         String url = "https://maps.googleapis.com/maps/api/directions/json?origin=$start.text&destination=$end.text&sensor=false&alternatives=false"
         if (System.getenv("GOOGLE_API_KEY")) {
             url += "&key=${System.getenv("GOOGLE_API_KEY")}"
@@ -75,7 +75,7 @@ class AddressService {
         ]
     }
 
-    private Integer getFromCache(Address start, Address end, String field) {
+    private Integer getFromCache(Location start, Location end, String field) {
         String url = buildUrl(start, end)
         if (!cache[url]?."$field") {
             populateCache(url)

@@ -8,21 +8,22 @@ import spock.lang.Specification
 /**
  * See the API for {@link grails.test.mixin.services.ServiceUnitTestMixin} for usage instructions
  */
-@Mock(Address)
-@TestFor(AddressService)
-class AddressServiceSpec extends Specification {
+@Mock(Location)
+@TestFor(LocationService)
+class LocationServiceSpec extends Specification {
 
-    Address home
-    Address church
+    Location home
+    Location church
 
     def setup() {
-        home = new Address(text: "192 Shannon Forest Dr Rustburg, VA")
-        church = new Address(text: "2361 New London Rd, Forest, VA 24551", tripsPerWeek: 5.5)
+        home = new Location(text: "192 Shannon Forest Dr Rustburg, VA")
+        church = new Location(text: "2361 New London Rd, Forest, VA 24551", tripsPerWeek: 5.5)
     }
 
     def cleanup() {
     }
 
+//    @IgnoreRest
     void "test find meters between addresses"() {
         expect:
         service.findMetersBetween(home, church) == 19076
@@ -50,9 +51,9 @@ class AddressServiceSpec extends Specification {
 
     void "test find weekly cost of a single location"() {
         setup:
-        assert !Address.count()
-        Address.initializeData()
-        assert Address.count()
+        assert !Location.count()
+        Location.initializeData()
+        assert Location.count()
 
         expect:
         service.findWeeklyCost(home)?.setScale(1, BigDecimal.ROUND_HALF_UP) == 582.8
@@ -61,9 +62,9 @@ class AddressServiceSpec extends Specification {
     @Ignore
     void doStuff() {
         setup:
-        assert !Address.count()
-        Address.initializeData()
-        assert Address.count()
+        assert !Location.count()
+        Location.initializeData()
+        assert Location.count()
 
         when:
         Map brcc = [lat: 37.2883773, lon: -79.3629626]
@@ -72,7 +73,7 @@ class AddressServiceSpec extends Specification {
         Date startTime = new Date()
         for (float lat = brcc.lat; lat < work.lat; lat += 0.01) {
             for (float lon = brcc.lon; lon < work.lon; lon += 0.01) {
-                println "${i++},$lat,$lon,${service.findWeeklyCost(new Address(text: "$lat, $lon"))}"
+                println "${i++},$lat,$lon,${service.findWeeklyCost(new Location(text: "$lat, $lon"))}"
             }
         }
         Date endTime = new Date()
