@@ -6,6 +6,7 @@ import grails.transaction.Transactional
 @Transactional
 class AddressService {
 
+    Map cache = [:]
 
     static final int ROUND_TRIP = 2
     static final BigDecimal MILES_PER_METER = 1.0 / 1609.0
@@ -14,27 +15,11 @@ class AddressService {
     static final BigDecimal DOLLARS_PER_HOUR = 40.0
 
     Integer findMetersBetween(Address start, Address end) {
-        String url = buildUrl(start, end)
-        def resp = new RestBuilder().get(url) { accept "application/json" }
-        int sleepTime = 1000
-        while (sleepTime < 10000 && resp?.json?.status == "OVER_QUERY_LIMIT") {
-            Thread.sleep(sleepTime)
-            resp = new RestBuilder().get(url) { accept "application/json" }
-            sleepTime += 1000
-        }
-        return resp?.json?.routes[0]?.legs[0]?.distance?.value
+        getFromCache(start, end, "meters")
     }
 
     Integer findSecondsBetween(Address start, Address end) {
-        String url = buildUrl(start, end)
-        def resp = new RestBuilder().get(url) { accept "application/json" }
-        int sleepTime = 1000
-        while (sleepTime < 10000 && resp?.json?.status == "OVER_QUERY_LIMIT") {
-            Thread.sleep(sleepTime)
-            resp = new RestBuilder().get(url) { accept "application/json" }
-            sleepTime += 1000
-        }
-        return resp?.json?.routes[0]?.legs[0]?.duration?.value
+        getFromCache(start, end, "seconds")
     }
 
     BigDecimal findWeeklyVehicleCost(Address start, Address end) {
@@ -56,7 +41,43 @@ class AddressService {
         }
     }
 
-    private GString buildUrl(Address start, Address end) {
-        "http://maps.googleapis.com/maps/api/directions/json?origin=$start.text&destination=$end.text&sensor=false&alternatives=false"
+    /**
+     * get api key at https://developers.google.com/maps/documentation/directions/
+     * manage api keys at https://console.developers.google.com/apis/credentials?project=geo-center
+     *
+     * @param start
+     * @param end
+     * @return
+     */
+    private String buildUrl(Address start, Address end) {
+        String url = "https://maps.googleapis.com/maps/api/directions/json?origin=$start.text&destination=$end.text&sensor=false&alternatives=false"
+        if (System.getenv("GOOGLE_API_KEY")) {
+            url += "&key=${System.getenv("GOOGLE_API_KEY")}"
+        }
+        println url
+        return url
+    }
+
+    private void populateCache(String url) {
+        def resp = new RestBuilder().get(url) { accept "application/json" }
+        int sleepTime = 1000
+        while (sleepTime < 10000 && !resp?.json?.routes) {
+            Thread.sleep(sleepTime)
+            resp = new RestBuilder().get(url) { accept "application/json" }
+            sleepTime += 1000
+        }
+        cache[url] = [
+            status : resp?.json?.status,
+            meters : resp?.json?.status == "OK" ? resp?.json?.routes[0]?.legs[0]?.distance?.value : null,
+            seconds: resp?.json?.status == "OK" ? resp?.json?.routes[0]?.legs[0]?.duration?.value : null
+        ]
+    }
+
+    private Integer getFromCache(Address start, Address end, String field) {
+        String url = buildUrl(start, end)
+        if (!cache[url]) {
+            populateCache(url)
+        }
+        return cache[url]."$field"
     }
 }

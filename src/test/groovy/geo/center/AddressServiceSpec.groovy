@@ -2,7 +2,7 @@ package geo.center
 
 import grails.test.mixin.Mock
 import grails.test.mixin.TestFor
-import spock.lang.IgnoreRest
+import spock.lang.Ignore
 import spock.lang.Specification
 
 /**
@@ -58,7 +58,7 @@ class AddressServiceSpec extends Specification {
         service.findWeeklyCost(home)?.setScale(1, BigDecimal.ROUND_HALF_UP) == 582.8
     }
 
-    @IgnoreRest
+    @Ignore
     void doStuff() {
         setup:
         assert !Address.count()
@@ -70,9 +70,9 @@ class AddressServiceSpec extends Specification {
         Map work = [lat: 37.415531, lon: -79.1425467]
         int i = 0;
         Date startTime = new Date()
-        for (float lat = brcc.lat; lat < work.lat; lat += 0.1) {
-            for (float lon = brcc.lon; lon < work.lon; lon += 0.1) {
-                println "${i++} \t$lat, $lon \t${service.findWeeklyCost(new Address(text: "$lat, $lon"))}"
+        for (float lat = brcc.lat; lat < work.lat; lat += 0.01) {
+            for (float lon = brcc.lon; lon < work.lon; lon += 0.01) {
+                println "${i++},$lat,$lon,${service.findWeeklyCost(new Address(text: "$lat, $lon"))}"
             }
         }
         Date endTime = new Date()
