@@ -41,6 +41,8 @@ class AddressService {
         }
     }
 
+    /* PRIVATE HELPER METHODS */
+
     /**
      * get api key at https://developers.google.com/maps/documentation/directions/
      * manage api keys at https://console.developers.google.com/apis/credentials?project=geo-center
@@ -75,7 +77,7 @@ class AddressService {
 
     private Integer getFromCache(Address start, Address end, String field) {
         String url = buildUrl(start, end)
-        if (!cache[url]) {
+        if (!cache[url]?."$field") {
             populateCache(url)
         }
         return cache[url]."$field"
