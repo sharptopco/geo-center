@@ -2,6 +2,7 @@ package geo.center
 
 import grails.test.mixin.Mock
 import grails.test.mixin.TestFor
+import spock.lang.IgnoreRest
 import spock.lang.Specification
 
 /**
@@ -16,7 +17,7 @@ class AddressServiceSpec extends Specification {
 
     def setup() {
         home = new Address(text: "192 Shannon Forest Dr Rustburg, VA")
-        church = new Address(text: "2361 New London Rd, Forest, VA 24551")
+        church = new Address(text: "2361 New London Rd, Forest, VA 24551", tripsPerWeek: 5.5)
     }
 
     def cleanup() {
@@ -29,14 +30,56 @@ class AddressServiceSpec extends Specification {
 
     void "test find seconds between addresses"() {
         expect:
-        service.findSecondsBetween(home, church).setScale(1, BigDecimal.ROUND_HALF_UP) == 1076
+        service.findSecondsBetween(home, church) == 1076
     }
 
-    void "test determine weekly vehicle cost"() {
-        setup:
-        church.tripsPerWeek = 5.5
-
+    void "test find weekly vehicle cost"() {
         expect:
         service.findWeeklyVehicleCost(home, church).setScale(1, BigDecimal.ROUND_HALF_UP) == 32.6
+    }
+
+    void "test find weekly time cost"() {
+        expect:
+        service.findWeeklyTimeCost(home, church).setScale(1, BigDecimal.ROUND_HALF_UP) == 131.5
+    }
+
+    void "test find weekly cost with two locations"() {
+        expect:
+        service.findWeeklyCost(home, church).setScale(1, BigDecimal.ROUND_HALF_UP) == 164.1
+    }
+
+    void "test find weekly cost of a single location"() {
+        setup:
+        assert !Address.count()
+        Address.initializeData()
+        assert Address.count()
+
+        expect:
+        service.findWeeklyCost(home)?.setScale(1, BigDecimal.ROUND_HALF_UP) == 582.8
+    }
+
+    @IgnoreRest
+    void doStuff() {
+        setup:
+        assert !Address.count()
+        Address.initializeData()
+        assert Address.count()
+
+        when:
+        Map brcc = [lat: 37.2883773, lon: -79.3629626]
+        Map work = [lat: 37.415531, lon: -79.1425467]
+        int i = 0;
+        Date startTime = new Date()
+        for (float lat = brcc.lat; lat < work.lat; lat += 0.1) {
+            for (float lon = brcc.lon; lon < work.lon; lon += 0.1) {
+                println "${i++} \t$lat, $lon \t${service.findWeeklyCost(new Address(text: "$lat, $lon"))}"
+            }
+        }
+        Date endTime = new Date()
+        def elapsedTime = endTime.time - startTime.time
+        println "$elapsedTime elapsed; ${elapsedTime / (float) i} per location"
+
+        then:
+        true
     }
 }
