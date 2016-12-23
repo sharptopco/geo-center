@@ -37,8 +37,8 @@ class LocationController {
         String output = ""
         def list = Location.list()
         list.each {
-            if (!location.lat || !location.lng) {
-                refreshLatLng(location)
+            if (!it.lat || !it.lng) {
+                refreshLatLng(it)
             }
             output += "new Location(text: '$it.text', lat: $it.lat, lng: $it.lng, generated: $it.generated, cost: $it.cost, tripsPerWeek: $it.tripsPerWeek).save(failOnError: true)<br />"
         }
