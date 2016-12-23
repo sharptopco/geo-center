@@ -7,6 +7,8 @@ import static org.springframework.http.HttpStatus.*
 @Transactional(readOnly = true)
 class LocationController {
 
+    boolean lazyInit = false
+
     LocationService locationService
 
     static allowedMethods = [save: "POST", update: "PUT", delete: "DELETE"]
@@ -26,12 +28,49 @@ class LocationController {
         respond list, model: [locationCount: list.size()], view: "index"
     }
 
+    def generated(Integer max) {
+        def list = Location.findAllByGeneratedAndCostGreaterThan(true, 0.0).sort { a, b -> a.cost <=> b.cost }
+        respond list, model: [locationCount: list.size()], view: "index"
+    }
+
+    def export() {
+        String output = ""
+        def list = Location.list()
+        list.each {
+            if (!location.lat || !location.lng) {
+                refreshLatLng(location)
+            }
+            output += "new Location(text: '$it.text', lat: $it.lat, lng: $it.lng, generated: $it.generated, cost: $it.cost, tripsPerWeek: $it.tripsPerWeek).save(failOnError: true)<br />"
+        }
+        render output
+    }
+
+    @Transactional
     def show(Location location) {
+        if (!location.lat || !location.lng) {
+            refreshLatLng(location)
+        }
+//        println "$location.lat, $location.lng"
         respond location
     }
 
     def create() {
         respond new Location(params)
+    }
+
+    def generate() {
+        Map church = [lat: 37.2883773, lon: -79.3629626]
+        Map work = [lat: 37.415531, lon: -79.1425467]
+
+        int i = 0;
+        for (float lat = church.lat; lat < work.lat; lat += 0.01) {
+            for (float lon = church.lon; lon < work.lon; lon += 0.01) {
+                println "${i++},$lat,$lon"
+                new Location(text: "$lat, $lon", generated: true).save()
+            }
+        }
+
+        redirect action: "generated"
     }
 
     @Transactional
@@ -119,4 +158,13 @@ class LocationController {
             '*' { render status: NOT_FOUND }
         }
     }
+
+    private void refreshLatLng(Location location) {
+        location.lat = null
+        location.lng = null
+        location.save(failOnError: true, flush: true)
+        locationService.findSecondsBetween(location, location)
+        location.save()
+    }
+
 }

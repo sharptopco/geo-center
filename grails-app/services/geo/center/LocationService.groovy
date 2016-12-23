@@ -2,6 +2,7 @@ package geo.center
 
 import grails.plugins.rest.client.RestBuilder
 import grails.transaction.Transactional
+import org.springframework.scheduling.annotation.Scheduled
 
 @Transactional
 class LocationService {
@@ -13,6 +14,16 @@ class LocationService {
     static final BigDecimal HOURS_PER_SECOND = 1.0 / 3600.0
     static final BigDecimal DOLLARS_PER_MILE = 0.25
     static final BigDecimal DOLLARS_PER_HOUR = 40.0
+
+    @Scheduled(fixedRate = 10000L)
+    void dummyJob() {
+        Location.findAllByGeneratedAndCost(true, 0.0, [max: 3]).each {
+            println "calculating $it.text..."
+            it.cost = findWeeklyCost(it)
+            it.save(failOnError: true)
+            println "$it.text = $it.cost"
+        }
+    }
 
     Integer findMetersBetween(Location start, Location end) {
         getFromCache(start, end, "meters")
@@ -56,7 +67,7 @@ class LocationService {
         if (System.getenv("GOOGLE_API_KEY")) {
             url += "&key=${System.getenv("GOOGLE_API_KEY")}"
         }
-        println url
+//        println url
         return url
     }
 
@@ -71,8 +82,11 @@ class LocationService {
         cache[url] = [
             status : resp?.json?.status,
             meters : resp?.json?.status == "OK" ? resp?.json?.routes[0]?.legs[0]?.distance?.value : null,
-            seconds: resp?.json?.status == "OK" ? resp?.json?.routes[0]?.legs[0]?.duration?.value : null
+            seconds: resp?.json?.status == "OK" ? resp?.json?.routes[0]?.legs[0]?.duration?.value : null,
+            start  : resp?.json?.status == "OK" ? resp?.json?.routes[0]?.legs[0]?.start_location : null,
+            end    : resp?.json?.status == "OK" ? resp?.json?.routes[0]?.legs[0]?.end_location : null
         ]
+//        println "start lat, lng: ${cache[url]?.start.lat}, ${cache[url]?.start.lng}"
     }
 
     private Integer getFromCache(Location start, Location end, String field) {
@@ -80,6 +94,10 @@ class LocationService {
         if (!cache[url]?."$field") {
             populateCache(url)
         }
+        if (!start.lat) start.lat = cache[url]?.start.lat
+        if (!start.lng) start.lng = cache[url]?.start.lng
+        if (!end.lat) end.lat = cache[url]?.end.lat
+        if (!end.lat) end.lat = cache[url]?.end.lng
         return cache[url]."$field"
     }
 }

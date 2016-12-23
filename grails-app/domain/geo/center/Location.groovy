@@ -6,9 +6,13 @@ class Location {
     float tripsPerWeek = 0.0
     int cost = 0.0
     boolean generated = false
+    Double lat = 0.0
+    Double lng = 0.0
 
     static constraints = {
-        text blank: false
+        text blank: false, unique: true
+        lat nullable: true, scale: 8
+        lng nullable: true, scale: 8
     }
 
     static void initializeData() {

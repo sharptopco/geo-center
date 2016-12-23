@@ -56,7 +56,7 @@ class LocationServiceSpec extends Specification {
         assert Location.count()
 
         expect:
-        service.findWeeklyCost(home)?.setScale(1, BigDecimal.ROUND_HALF_UP) == 582.8
+        service.findWeeklyCost(home)?.setScale(1, BigDecimal.ROUND_HALF_UP) == 525.0
     }
 
     @Ignore
