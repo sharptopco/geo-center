@@ -22,9 +22,14 @@ class AddressServiceSpec extends Specification {
     def cleanup() {
     }
 
-    void "test get distance between addresses"() {
+    void "test find meters between addresses"() {
         expect:
         service.findMetersBetween(home, church) == 19076
+    }
+
+    void "test find seconds between addresses"() {
+        expect:
+        service.findSecondsBetween(home, church).setScale(1, BigDecimal.ROUND_HALF_UP) == 1076
     }
 
     void "test determine weekly vehicle cost"() {

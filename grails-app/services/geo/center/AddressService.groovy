@@ -17,6 +17,12 @@ class AddressService {
         return resp.json.routes[0].legs[0].distance.value
     }
 
+    BigDecimal findSecondsBetween(Address start, Address end) {
+        String url = buildUrl(start, end)
+        def resp = new RestBuilder().get(url) { accept "application/json" }
+        return resp.json.routes[0].legs[0].duration.value
+    }
+
 //        Address end = Address.findAllByTripsPerWeekNotEqual(0.0).first()
 //        Address.findAllByWeightNotEqual(0.0).each {  }.sum()
 
