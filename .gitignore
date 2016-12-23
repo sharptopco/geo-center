@@ -11,3 +11,4 @@ classes/
 .settings
 .classpath
 set-google-key.sh
+*.db
