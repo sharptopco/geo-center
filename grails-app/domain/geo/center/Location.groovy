@@ -8,11 +8,23 @@ class Location {
     boolean generated = false
     Double lat = 0.0
     Double lng = 0.0
+    String link
+    Status status = Status.NEUTRAL
 
     static constraints = {
         text blank: false, unique: true
         lat nullable: true, scale: 8
         lng nullable: true, scale: 8
+        link nullable: true
+        status nullable: true
+    }
+
+    String getLink() {
+        link ?: "https://www.google.com/#q=$text"
+    }
+
+    Status getStatus() {
+        status ?: Status.NEUTRAL
     }
 
     static void initializeData() {

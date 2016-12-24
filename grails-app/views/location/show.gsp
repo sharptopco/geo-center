@@ -7,7 +7,8 @@
         <style>
         #map {
             height: 600px;
-            width: 100%;
+            width: 80%;
+            margin: 0 10%;
         }
         </style>
     </head>
@@ -32,7 +33,9 @@
                 <div class="message" role="status">${flash.message}</div>
             </g:if>
 
-            <div id="map"></div>
+            <div style="align-content: center">
+                <div id="map"></div>
+            </div>
             <script>
                 function initMap() {
                     var loc = {lat: ${location.lat}, lng: ${location.lng}};

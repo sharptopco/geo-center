@@ -1,0 +1,1 @@
+<g:link url="${value}">${value}</g:link>

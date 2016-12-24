@@ -15,6 +15,9 @@ class LocationController {
 
     def index(Integer max) {
         def list = Location.findAllByTripsPerWeekAndGenerated(0.0, false).sort { a, b -> a.cost <=> b.cost }
+        list.findAll { it.status == Status.DISMISSED }.each { it.text = "<span style='text-decoration: line-through;'>$it.text</span>" }
+        list.findAll { it.status == Status.INTERESTED }.each { it.text = "<span style='font-weight: bold;'>$it.text</span>" }
+        list.findAll { it.status == Status.EXCITED }.each { it.text = "<span style='font-weight: bold; text-transform: uppercase;'>$it.text</span>" }
         respond list, model: [locationCount: list.size()], view: "index"
     }
 
