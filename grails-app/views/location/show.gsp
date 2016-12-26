@@ -19,7 +19,7 @@
         <div class="nav" role="navigation">
             <ul>
                 <li><a class="home" href="${createLink(uri: '/')}"><g:message code="default.home.label"/></a></li>
-                <li><g:link class="list" action="index">House Locations</g:link></li>
+                <li><g:link class="list" action="toReview">To Review</g:link></li>
                 <li><g:link class="list" action="generated">Generated Locations</g:link></li>
                 <li><g:link class="list" action="all">All Locations</g:link></li>
                 <li><g:link class="list" action="destinations">Destinations</g:link></li>

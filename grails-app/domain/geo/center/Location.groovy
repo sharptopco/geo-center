@@ -3,20 +3,30 @@ package geo.center
 class Location {
 
     String text
+    Integer totalCost
     float tripsPerWeek = 0.0
-    int cost = 0.0
+    Integer commuteCost = 0
     boolean generated = false
     Double lat = 0.0
     Double lng = 0.0
     String link
     Status status = Status.NEUTRAL
+    Integer purchasePrice
+    Integer monthlyMortgage
+    Integer monthlyTaxes
+    Integer monthlyInsurance
 
     static constraints = {
         text blank: false, unique: true
+        totalCost nullable: true
         lat nullable: true, scale: 8
         lng nullable: true, scale: 8
         link nullable: true
         status nullable: true
+        purchasePrice nullable: true
+        monthlyMortgage nullable: true
+        monthlyTaxes nullable: true
+        monthlyInsurance nullable: true
     }
 
     String getLink() {
@@ -25,6 +35,26 @@ class Location {
 
     Status getStatus() {
         status ?: Status.NEUTRAL
+    }
+
+    Integer getTotalCost() {
+        totalCost ?: (getCommuteCost() * 52.0 / 12.0) + getMonthlyInsurance() + getMonthlyMortgage() + getMonthlyTaxes()
+    }
+
+    Integer getCommuteCost() {
+        commuteCost ?: 0
+    }
+
+    Integer getMonthlyInsurance() {
+        monthlyInsurance ?: 0
+    }
+
+    Integer getMonthlyMortgage() {
+        monthlyMortgage ?: 0
+    }
+
+    Integer getMonthlyTaxes() {
+        monthlyTaxes ?: 0
     }
 
     static void initializeData() {

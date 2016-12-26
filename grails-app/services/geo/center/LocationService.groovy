@@ -17,11 +17,11 @@ class LocationService {
 
     @Scheduled(fixedRate = 10000L)
     void dummyJob() {
-        Location.findAllByGeneratedAndCost(true, 0.0, [max: 3]).each {
+        Location.findAllByGeneratedAndCommuteCost(true, 0.0, [max: 3]).each {
             println "calculating $it.text..."
-            it.cost = findWeeklyCost(it)
+            it.commuteCost = findWeeklyCost(it)
             it.save(failOnError: true)
-            println "$it.text = $it.cost"
+            println "$it.text = $it.commuteCost"
         }
     }
 

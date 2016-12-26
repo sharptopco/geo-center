@@ -13,11 +13,19 @@ class LocationController {
 
     static allowedMethods = [save: "POST", update: "PUT", delete: "DELETE"]
 
-    def index(Integer max) {
-        def list = Location.findAllByTripsPerWeekAndGenerated(0.0, false).sort { a, b -> a.cost <=> b.cost }
-        list.findAll { it.status == Status.DISMISSED }.each { it.text = "<span style='text-decoration: line-through;'>$it.text</span>" }
+    def index() {
+//        println "excited about: ${Location.findAllByStatusInList([Status.EXCITED, Status.INTERESTED])*.text}"
+        def list = Location.findAllByStatusInList([Status.EXCITED, Status.INTERESTED]).sort { a, b -> a.totalCost <=> b.totalCost }
+//        list.findAll { it.status == Status.DISMISSED }.each { it.text = "<span style='text-decoration: line-through;'>$it.text</span>" }
         list.findAll { it.status == Status.INTERESTED }.each { it.text = "<span style='font-weight: bold;'>$it.text</span>" }
         list.findAll { it.status == Status.EXCITED }.each { it.text = "<span style='font-weight: bold; text-transform: uppercase;'>$it.text</span>" }
+        respond list, model: [locationCount: list.size()], view: "index"
+    }
+
+    def toReview() {
+        def list = Location.findAllByTripsPerWeekAndGeneratedAndStatusInList(0.0, false, [Status.NEUTRAL]).sort { a, b -> a.commuteCost <=> b.commuteCost }
+//        list.findAll { it.status == Status.INTERESTED }.each { it.text = "<span style='font-weight: bold;'>$it.text</span>" }
+//        list.findAll { it.status == Status.EXCITED }.each { it.text = "<span style='font-weight: bold; text-transform: uppercase;'>$it.text</span>" }
         respond list, model: [locationCount: list.size()], view: "index"
     }
 
@@ -26,13 +34,13 @@ class LocationController {
         respond Location.list(params), model: [locationCount: Location.count()], view: "index"
     }
 
-    def destinations(Integer max) {
+    def destinations() {
         def list = Location.findAllByTripsPerWeekGreaterThan(0.0).sort { a, b -> b.tripsPerWeek <=> a.tripsPerWeek }
         respond list, model: [locationCount: list.size()], view: "index"
     }
 
-    def generated(Integer max) {
-        def list = Location.findAllByGeneratedAndCostGreaterThan(true, 0.0).sort { a, b -> a.cost <=> b.cost }
+    def generated() {
+        def list = Location.findAllByGeneratedAndCommuteCostGreaterThan(true, 0.0).sort { a, b -> a.commuteCost <=> b.commuteCost }
         respond list, model: [locationCount: list.size()], view: "index"
     }
 
@@ -43,7 +51,7 @@ class LocationController {
             if (!it.lat || !it.lng) {
                 refreshLatLng(it)
             }
-            output += "new Location(text: '$it.text', lat: $it.lat, lng: $it.lng, generated: $it.generated, cost: $it.cost, tripsPerWeek: $it.tripsPerWeek).save(failOnError: true)<br />"
+            output += "new Location(text: '$it.text', lat: $it.lat, lng: $it.lng, generated: $it.generated, commuteCost: $it.commuteCost, tripsPerWeek: $it.tripsPerWeek, status: $it.status).save(failOnError: true)<br />"
         }
         render output
     }
@@ -90,7 +98,7 @@ class LocationController {
             return
         }
 
-        location.cost = locationService.findWeeklyCost(location)
+        location.commuteCost = locationService.findWeeklyCost(location)
 
         location.save flush: true
 
