@@ -18,15 +18,16 @@ class Location {
 
     static constraints = {
         text blank: false, unique: true
-        totalCost nullable: true
-        lat nullable: true, scale: 8
-        lng nullable: true, scale: 8
-        link nullable: true
         status nullable: true
+        link nullable: true
+        totalCost nullable: true
         purchasePrice nullable: true
+        commuteCost()
         monthlyMortgage nullable: true
         monthlyTaxes nullable: true
         monthlyInsurance nullable: true
+        lat nullable: true, scale: 8
+        lng nullable: true, scale: 8
     }
 
     String getLink() {
